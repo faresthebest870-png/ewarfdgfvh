@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Multi Reminder App</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#1e293b;
+    color:white;
+    padding:30px;
+}
+
+.container{
+    max-width:600px;
+    margin:auto;
+    background:#334155;
+    padding:20px;
+    border-radius:15px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:8px;
+}
+
+button{
+    padding:12px 20px;
+    background:#22c55e;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#16a34a;
+}
+
+.reminder{
+    background:#475569;
+    margin-top:10px;
+    padding:10px;
+    border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+    
+<button onclick="startVoice()">
+🎤 Speak Reminder
+</button>
+
+<button onclick="toggleMute()">
+🔇 Mute / Unmute
+</button>
+
+
+<div class="container">
+
+<h1>🔔 Reminder App</h1>
+
+<input
+id="task"
+type="text"
+placeholder="Enter reminder">
+
+<input
+id="time"
+type="time">
+
+<button onclick="addReminder()">
+Add Reminder
+</button>
+
+<h2>Your Reminders</h2>
+
+<div id="reminders"></div>
+
+</div>
+
+<script>
+
+const reminders = [];
+
+function addReminder(){
+
+    const task =
+    document.getElementById("task").value;
+
+    const time =
+    document.getElementById("time").value;
+
+    if(!task || !time){
+
+        alert(
+        "Please enter task and time"
+        );
+
+        return;
+    }
+
+    reminders.push({
+        task,
+        time,
+        done:false
+    });
+
+    renderReminders();
+
+    document.getElementById(
+        "task"
+    ).value = "";
+
+}
+
+function renderReminders(){
+
+    const container =
+    document.getElementById(
+        "reminders"
+    );
+
+    container.innerHTML = "";
+
+    reminders.forEach((r,index)=>{
+
+        container.innerHTML += `
+
+        <div class="reminder">
+
+        <strong>${r.task}</strong>
+
+        <br>
+
+        ⏰ ${r.time}
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+setInterval(()=>{
+
+    const now = new Date();
+
+    const currentTime =
+
+    String(now.getHours())
+    .padStart(2,"0")
+
+    + ":" +
+
+    String(now.getMinutes())
+    .padStart(2,"0");
+
+    reminders.forEach(r=>{
+
+        if(
+            currentTime === r.time &&
+            !r.done
+        ){
+
+            alert(
+            "🔔 Reminder: "
+            + r.task
+            );
+
+            r.done = true;
+
+        }
+
+    });
+
+},1000);
+
+</script>
+
+</body>
+</html>
