@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Voice Reminder App</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#1e293b;
+    color:white;
+    padding:30px;
+}
+
+.container{
+    max-width:600px;
+    margin:auto;
+    background:#334155;
+    padding:20px;
+    border-radius:15px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:8px;
+}
+
+button{
+    padding:12px 18px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#16a34a;
+}
+
+.reminder{
+    background:#475569;
+    margin-top:10px;
+    padding:12px;
+    border-radius:10px;
+}
+
+#status{
+    color:gold;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🔔 Voice Reminder App</h1>
+
+<input
+id="task"
+type="text"
+placeholder="Enter reminder">
+
+<input
+id="time"
+type="time">
+
+<button onclick="addReminder()">
+➕ Add Reminder
+</button>
+
+<button onclick="startVoice()">
+🎤 Speak Reminder
+</button>
+
+<button
+id="muteBtn"
+onclick="toggleMute()">
+🔇 Mute
+</button>
+
+<p id="status"></p>
+
+<h2>Your Reminders</h2>
+
+<div id="reminders"></div>
+
+</div>
+
+<script>
+
+const reminders = [];
+
+let muted = false;
+
+/* ADD REMINDER */
+
+function addReminder(){
+
+    const task =
+    document.getElementById("task").value;
+
+    const time =
+    document.getElementById("time").value;
+
+    if(!task || !time){
+
+        alert(
+        "Please enter reminder and time"
+        );
+
+        return;
+    }
+
+    reminders.push({
+
+        task:task,
+
+        time:time,
+
+        done:false
+
+    });
+
+    document.getElementById(
+        "task"
+    ).value = "";
+
+    renderReminders();
+
+}
+
+/* DISPLAY REMINDERS */
+
+function renderReminders(){
+
+    const container =
+    document.getElementById(
+        "reminders"
+    );
+
+    container.innerHTML = "";
+
+    reminders.forEach((r)=>{
+
+        container.innerHTML +=
+        `
+        <div class="reminder">
+
+            <strong>${r.task}</strong>
+
+            <br>
+
+            ⏰ ${r.time}
+
+        </div>
+        `;
+
+    });
+
+}
+
+/* VOICE INPUT */
+
+function startVoice(){
+
+    const SpeechRecognition =
+
+    window.SpeechRecognition ||
+
+    window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+
+        alert(
+        "Speech Recognition not supported"
+        );
+
+        return;
+    }
+
+    const recognition =
+    new SpeechRecognition();
+
+    recognition.lang =
+    "en-US";
+
+    recognition.start();
+
+    document.getElementById(
+        "status"
+    ).innerText =
+    "🎤 Listening...";
+
+    recognition.onresult =
+    function(event){
+
+        const text =
+
+        event.results[0][0]
+        .transcript;
+
+        document.getElementById(
+            "task"
+        ).value = text;
+
+        document.getElementById(
+            "status"
+        ).innerText =
+        "✅ Voice captured";
+
+    };
+
+}
+
+/* MUTE / UNMUTE */
+
+function toggleMute(){
+
+    muted = !muted;
+
+    const btn =
+    document.getElementById(
+        "muteBtn"
+    );
+
+    if(muted){
+
+        speechSynthesis.cancel();
+
+        btn.innerText =
+        "🔊 Unmute";
+
+    }else{
+
+        btn.innerText =
+        "🔇 Mute";
+
+    }
+
+}
+
+/* CHECK REMINDERS */
+
+setInterval(()=>{
+
+    const now =
+    new Date();
+
+    const currentTime =
+
+    String(
+        now.getHours()
+    ).padStart(2,"0")
+
+    + ":"
+
+    +
+
+    String(
+        now.getMinutes()
+    ).padStart(2,"0");
+
+    reminders.forEach((r)=>{
+
+        if(
+
+            currentTime ===
+            r.time
+
+            &&
+
+            !r.done
+
+        ){
+
+            alert(
+            "🔔 Reminder: "
+            + r.task
+            );
+
+            if(!muted){
+
+                speechSynthesis.cancel();
+
+                const speech =
+
+                new SpeechSynthesisUtterance(
+                    r.task
+                );
+
+                speech.lang =
+                "en-US";
+
+                speechSynthesis.speak(
+                    speech
+                );
+
+            }
+
+            r.done = true;
+
+        }
+
+    });
+
+},1000);
+
+</script>
+<script src="main.js"></script>
+<button onclick="startVoice()">
+🎤 Speak Reminder
+</button>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#22c55e">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</body>
+</html>
