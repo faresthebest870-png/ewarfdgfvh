@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
-<title>Multi Reminder App</title>
+<title>Voice Reminder App</title>
 
 <style>
 body{
@@ -29,11 +30,12 @@ input{
 }
 
 button{
-    padding:12px 20px;
-    background:#22c55e;
-    color:white;
+    padding:12px 18px;
+    margin:5px;
     border:none;
     border-radius:8px;
+    background:#22c55e;
+    color:white;
     cursor:pointer;
 }
 
@@ -44,26 +46,21 @@ button:hover{
 .reminder{
     background:#475569;
     margin-top:10px;
-    padding:10px;
+    padding:12px;
     border-radius:10px;
+}
+
+#status{
+    color:gold;
+    margin-top:10px;
 }
 </style>
 </head>
-
 <body>
-    
-<button onclick="startVoice()">
-🎤 Speak Reminder
-</button>
-
-<button onclick="toggleMute()">
-🔇 Mute / Unmute
-</button>
-
 
 <div class="container">
 
-<h1>🔔 Reminder App</h1>
+<h1>🔔 Voice Reminder App</h1>
 
 <input
 id="task"
@@ -75,8 +72,20 @@ id="time"
 type="time">
 
 <button onclick="addReminder()">
-Add Reminder
+➕ Add Reminder
 </button>
+
+<button onclick="startVoice()">
+🎤 Speak Reminder
+</button>
+
+<button
+id="muteBtn"
+onclick="toggleMute()">
+🔇 Mute
+</button>
+
+<p id="status"></p>
 
 <h2>Your Reminders</h2>
 
@@ -87,6 +96,10 @@ Add Reminder
 <script>
 
 const reminders = [];
+
+let muted = false;
+
+/* ADD REMINDER */
 
 function addReminder(){
 
@@ -99,25 +112,31 @@ function addReminder(){
     if(!task || !time){
 
         alert(
-        "Please enter task and time"
+        "Please enter reminder and time"
         );
 
         return;
     }
 
     reminders.push({
-        task,
-        time,
-        done:false
-    });
 
-    renderReminders();
+        task:task,
+
+        time:time,
+
+        done:false
+
+    });
 
     document.getElementById(
         "task"
     ).value = "";
 
+    renderReminders();
+
 }
+
+/* DISPLAY REMINDERS */
 
 function renderReminders(){
 
@@ -128,51 +147,162 @@ function renderReminders(){
 
     container.innerHTML = "";
 
-    reminders.forEach((r,index)=>{
+    reminders.forEach((r)=>{
 
-        container.innerHTML += `
-
+        container.innerHTML +=
+        `
         <div class="reminder">
 
-        <strong>${r.task}</strong>
+            <strong>${r.task}</strong>
 
-        <br>
+            <br>
 
-        ⏰ ${r.time}
+            ⏰ ${r.time}
 
         </div>
-
         `;
 
     });
 
 }
 
+/* VOICE INPUT */
+
+function startVoice(){
+
+    const SpeechRecognition =
+
+    window.SpeechRecognition ||
+
+    window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+
+        alert(
+        "Speech Recognition not supported"
+        );
+
+        return;
+    }
+
+    const recognition =
+    new SpeechRecognition();
+
+    recognition.lang =
+    "en-US";
+
+    recognition.start();
+
+    document.getElementById(
+        "status"
+    ).innerText =
+    "🎤 Listening...";
+
+    recognition.onresult =
+    function(event){
+
+        const text =
+
+        event.results[0][0]
+        .transcript;
+
+        document.getElementById(
+            "task"
+        ).value = text;
+
+        document.getElementById(
+            "status"
+        ).innerText =
+        "✅ Voice captured";
+
+    };
+
+}
+
+/* MUTE / UNMUTE */
+
+function toggleMute(){
+
+    muted = !muted;
+
+    const btn =
+    document.getElementById(
+        "muteBtn"
+    );
+
+    if(muted){
+
+        speechSynthesis.cancel();
+
+        btn.innerText =
+        "🔊 Unmute";
+
+    }else{
+
+        btn.innerText =
+        "🔇 Mute";
+
+    }
+
+}
+
+/* CHECK REMINDERS */
+
 setInterval(()=>{
 
-    const now = new Date();
+    const now =
+    new Date();
 
     const currentTime =
 
-    String(now.getHours())
-    .padStart(2,"0")
+    String(
+        now.getHours()
+    ).padStart(2,"0")
 
-    + ":" +
+    + ":"
 
-    String(now.getMinutes())
-    .padStart(2,"0");
+    +
 
-    reminders.forEach(r=>{
+    String(
+        now.getMinutes()
+    ).padStart(2,"0");
+
+    reminders.forEach((r)=>{
 
         if(
-            currentTime === r.time &&
+
+            currentTime ===
+            r.time
+
+            &&
+
             !r.done
+
         ){
 
             alert(
             "🔔 Reminder: "
             + r.task
             );
+
+            if(!muted){
+
+                speechSynthesis.cancel();
+
+                const speech =
+
+                new SpeechSynthesisUtterance(
+                    r.task
+                );
+
+                speech.lang =
+                "en-US";
+
+                speechSynthesis.speak(
+                    speech
+                );
+
+            }
 
             r.done = true;
 
@@ -183,6 +313,7 @@ setInterval(()=>{
 },1000);
 
 </script>
+<script src="main.js"></script>
 
 </body>
 </html>
